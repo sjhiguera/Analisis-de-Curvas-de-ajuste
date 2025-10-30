@@ -260,7 +260,7 @@ tabPanel("Coeficiente de deformación",
 between predictor variables and an outcome variable and the pattern could show up in this plot if the
 model doesn’t capture the non-linear relationship. If you find equally spread residuals around a 
 horizontal line without distinct patterns, that is a good indication you don’t have non-linear
-relationships."), ),          
+relationships"), ),          
 ############################################################################################################              
               
                        tabPanel("Análisis Residual", 
