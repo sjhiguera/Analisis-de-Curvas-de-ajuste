@@ -253,14 +253,19 @@ La calidad general del ajuste de la regresión lineal se puede evaluar utilizand
                        verbatimTextOutput("Fstatistics"),
               ),
 #######################################################################################################################              
-tabPanel("Coeficiente de deformación",
-         pre("ESta gráfica muestra si los residuales presentan algún patrón de linealidad. Podría existir 
-                       una relación no lineal entre la variable predictora y la variable de salida, en tanto que 
-                       There could be a non-linear relationship 
-between predictor variables and an outcome variable and the pattern could show up in this plot if the
-model doesn’t capture the non-linear relationship. If you find equally spread residuals around a 
-horizontal line without distinct patterns, that is a good indication you don’t have non-linear
-relationshi"), ),          
+tabPanel(
+  "Coeficiente de deformación",
+  
+  # Campo opcional para definir el área (puedes quitarlo si no lo necesitas)
+  numericInput("area", "Área:", value = 1, min = 0.0001),
+  
+  # Aquí se mostrará la tabla del modelo y el cálculo de lambda
+  uiOutput("lambda"),
+  
+  # Texto explicativo debajo
+  pre("Una vez se evalúa la significancia de la pendiente, se procede al cálculo del coeficiente de deformación LAMBDA.
+Si de los resultados anteriores se ha evaluado que no es significativa, no se procederá a su evaluación.")
+),
 ############################################################################################################              
               
                        tabPanel("Análisis Residual", 
@@ -358,7 +363,9 @@ tabPanel("Outliers",
       br(),     
       
 ),
-#####################################################################################################              
+#####################################################################################################  
+
+######################################################################################################
               tabPanel("Area constante",
                        tags$b("Regression plot:"),
                        plotlyOutput("plot1"),
@@ -770,6 +777,94 @@ output$uncertainty_calculation <- renderPrint({
   cat("\nPaso 4: Calcular la incertidumbre tipo A.\n")
   cat("Incertidumbre Tipo A:", format(uncertainty_A, scientific = TRUE), "\n")
 })
+############################################################################################
+ # LAMBDA
+    output$lambda <- renderUI({
+      req(data())
+      req(input$xvar, input$yvar)
+      
+      # Convertir columnas a numéricas
+      x <- as.numeric(data()[[input$xvar]])
+      y <- as.numeric(data()[[input$yvar]])
+      
+      validate(
+        need(length(x) > 1 && length(y) > 1, "No hay suficientes datos para ajustar un modelo.")
+      )
+      
+      # Ajuste del modelo lineal
+      fit_ols <- lm(y ~ x)
+      coefs <- coef(fit_ols)  
+      
+      # Pendiente e intercepto
+      pendiente <- coefs["x"]
+      intercepto <- coefs["(Intercept)"]
+      
+      # p-valor de la pendiente
+      p_valor <- summary(fit_ols)$coefficients["x", "Pr(>|t|)"]
+      
+      # Calcular λ siempre (MPa⁻¹)
+      lambda <- (pendiente / intercepto) * 1e6
+      
+      # Formato legible
+      pendiente_fmt <- signif(pendiente, 4)
+      intercepto_fmt <- signif(intercepto, 6)
+      lambda_fmt <- signif(lambda, 4)
+      
+      # Color del card según significancia
+      color_card <- ifelse(p_valor < 0.05, "#E8F5E9", "#FFF3E0")
+      border_color <- ifelse(p_valor < 0.05, "#4CAF50", "#FF9800")
+      
+      # Crear card con el resumen, λ y ecuación, sin cuadro editable de Área
+      tagList(
+        div(
+          style = paste0("padding:15px; border-radius:8px; border:2px solid ", border_color,
+                         "; background-color:", color_card, "; margin-bottom:10px;"),
+          h4("📊 Resumen del modelo lineal"),
+          verbatimTextOutput("summary_lm_card"),
+          br(),
+          h5(paste0("Área (intercepto calculado): ", intercepto_fmt)),  # intercepto fijo
+          h5(paste0("Coeficiente de deformación lineal (λ): ", lambda_fmt, " MPa⁻¹")),
+          # Mostrar ecuación de λ en formato matemático
+          withMathJax(
+            HTML(paste0(
+              "$$\\lambda = \\frac{\\text{pendiente}}{\\text{intercepto}} = ",
+              "\\frac{", pendiente_fmt, "}{", intercepto_fmt, "} \\times 10^6 = ",
+              lambda_fmt, " \\text{ MPa}^{-1}$$"
+            ))
+          ),
+          if(p_valor >= 0.05){
+            div(
+              style = "padding:10px; border-left:4px solid #FF9800; background-color:#FFF3E0; margin-top:10px;",
+              strong("⚠️ Advertencia:"),
+              br(),
+              "La pendiente no es significativa (p ≥ 0.05)."
+            )
+          }
+        )
+      )
+    })
+    
+    # Renderizar resumen del modelo dentro del card
+    output$summary_lm_card <- renderPrint({
+      req(data())
+      req(input$xvar, input$yvar)
+      x <- as.numeric(data()[[input$xvar]])
+      y <- as.numeric(data()[[input$yvar]])
+      fit_ols <- lm(y ~ x)
+      summary(fit_ols)
+    })
+    
+    
+    # Renderizar resumen del modelo dentro del card
+    output$summary_lm_card <- renderPrint({
+      req(data())
+      req(input$xvar, input$yvar)
+      x <- as.numeric(data()[[input$xvar]])
+      y <- as.numeric(data()[[input$yvar]])
+      fit_ols <- lm(y ~ x)
+      summary(fit_ols)
+    })
+    
 ############################################################################################
 #Comparando los coeficientes
 #############################################################################################
