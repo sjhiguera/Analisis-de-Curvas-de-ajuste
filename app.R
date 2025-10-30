@@ -253,7 +253,14 @@ La calidad general del ajuste de la regresión lineal se puede evaluar utilizand
                        verbatimTextOutput("Fstatistics"),
               ),
 #######################################################################################################################              
-tabPanel("Coeficiente de deformación",),          
+tabPanel("Coeficiente de deformación",
+         pre("ESta gráfica muestra si los residuales presentan algún patrón de linealidad. Podría existir 
+                       una relación no lineal entre la variable predictora y la variable de salida, en tanto que 
+                       There could be a non-linear relationship 
+between predictor variables and an outcome variable and the pattern could show up in this plot if the
+model doesn’t capture the non-linear relationship. If you find equally spread residuals around a 
+horizontal line without distinct patterns, that is a good indication you don’t have non-linear
+relationships."), ),          
 ############################################################################################################              
               
                        tabPanel("Análisis Residual", 
