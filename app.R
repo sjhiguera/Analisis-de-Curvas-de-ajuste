@@ -252,9 +252,9 @@ La calidad general del ajuste de la regresión lineal se puede evaluar utilizand
                        br(),
                        verbatimTextOutput("Fstatistics"),
               ),
-              
-             
-              
+#######################################################################################################################              
+tabPanel("Coeficiente de deformación",),          
+############################################################################################################              
               
                        tabPanel("Análisis Residual", 
                        tags$b("Residuals vs Fitted"),         
